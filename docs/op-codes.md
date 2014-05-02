@@ -4,11 +4,11 @@ The Grist VM supports the following op code instructions. Each instruction is a 
 
 ## Instructions
 
-### NOOP - 0
+### 0 - NOOP
 
 Tells the processor to move on to the next instruction.
 
-### SETREG - 1
+### 1 - SETREG
 
 Sets a register to a literal value. 
 
