@@ -16,6 +16,22 @@
 
 var gristVm = gristVm || {};
 
+/**
+ * Error class to be thrown by the interpreter in case of a program error.
+ * @constructor
+ */
+gristVm.InterpreterError = function(message) {
+  this.name = 'GristInterpreterError';
+  this.message = message;
+};
+
+gristVm.InterpreterError.prototype = new Error();
+
+
+/**
+ * Interpreter for GristVM bytecode.
+ * @constructor
+ */
 gristVm.Interpreter = function(instructionBytes, opt_numRegisters) {
   this.instructions_ = instructionBytes;
   this.instructionIndex_ = 0;
@@ -41,6 +57,9 @@ gristVm.Interpreter = function(instructionBytes, opt_numRegisters) {
   // others.
 };
 
+/**
+ * Provides a snapshot of the state of the virtual processor's registers.
+ */
 gristVm.Interpreter.prototype.dump = function() {
   var state = {
     instructionIndex: this.instructionIndex_,
@@ -52,3 +71,69 @@ gristVm.Interpreter.prototype.dump = function() {
   }
   return state;
 };
+
+gristVm.Interpreter.prototype.consumeByte_ = function() {
+  if (this.instructionIndex_ >= 0 && this.instructionIndex_ < this.instructions_.length) {
+    var byteVal = this.instructions_[this.instructionIndex_];
+    if (byteVal < 0 || byteVal > 255) {
+      return null;
+    }
+    this.instructionIndex_++;
+    return byteVal;
+  } else {
+    return null;
+  }
+};
+
+gristVm.Interpreter.prototype.consumeInt_ = function() {
+  var intVal = 0;
+  var b;
+  for (var i = 0; i < 4; i++) {
+    b = this.consumeByte_();
+    if (b == null) {
+      return null;
+    }
+    intVal += b << (i * 8);
+  }
+  return intVal;
+};
+
+/**
+ * Executes the next instruction and advances to the next instruction.
+ * @return {boolean} true if execution should continue.
+ */
+gristVm.Interpreter.prototype.step = function() {
+  var instructionByte = this.consumeByte_();
+  switch (instructionByte) {
+    case 0:
+      break;
+    case 1:
+      this.setReg();
+      break;
+    default: // if null, we've run out of bytes and should not continue.
+      return false;
+  }
+  return true;
+};
+
+gristVm.Interpreter.prototype.setReg = function() {
+  var regNumber = this.consumeByte_();
+  var value = this.consumeInt_();
+  if (regNumber == null || value == null) {
+    throw new gristVm.InterpreterError(
+        'Unexpected inputs when setting register. Tried to set register ' +
+        regNumber + ' to value ' + value + '.');
+  } else if (regNumber > this.numRegisters_) {
+    throw new gristVm.InterpreterError(
+        'Tried to set register that does not exist. Requested register ' +
+        regNumber + ' but this VM only has ' + this.numReggisters_ +
+        ' registers.');
+  }
+  this.registers_[regNumber] = value;
+};
+
+gristVm.Interpreter.prototype.run = function() {
+
+};
+
+

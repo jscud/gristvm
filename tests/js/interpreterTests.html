@@ -64,6 +64,19 @@ limitations under the License.
                          interpreter.dump().r256);
       });
 
+      suite.addTest('set value of a register', function(test) {
+        var interpreter = new gristVm.Interpreter([1, 0, 1, 0, 0, 0]);
+        test.assertTrue('Should be ready to continue after setting register.',
+                        interpreter.step());
+        test.assertEqual('Register 0 should now contain 1', 1,
+                         interpreter.dump().r0);
+        test.assertFalse(
+            'Should no longer step now that we have used all bytes.',
+            interpreter.step());
+        test.assertEqual('Register 0 should still contain 1', 1,
+                         interpreter.dump().r0);
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
