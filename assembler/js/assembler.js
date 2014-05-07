@@ -71,6 +71,7 @@ gristVm.Tokenizer.prototype.nextToken = function() {
    *         6 - comment
    */
   var state = 0;
+  var identifierRegExp = new RegExp('[0-9A-Za-z_\.]');
   while (this.index_ < this.code_.length) {
     current = this.code_.charAt(this.index_);
     if (state == 0) {
@@ -94,6 +95,14 @@ gristVm.Tokenizer.prototype.nextToken = function() {
       } else if (current == '#') {
         state = 6;
         this.index_++;
+      } else if (identifierRegExp.test(current)) {
+        state = 4;
+        tokenChars.push(current);
+        this.index_++;
+      } else {
+        // Single character symbol.
+        this.index_++;
+        return current;
       }
     } else if (state == 1 || state == 2) {
       if (/\d/.test(current) || (state == 1 && current == '-')) {
@@ -101,7 +110,6 @@ gristVm.Tokenizer.prototype.nextToken = function() {
         this.index_++;
         tokenChars.push(current);
       } else {
-        state = 0;
         return tokenChars.join('');
       }
     } else if (state == 3) {
@@ -109,7 +117,6 @@ gristVm.Tokenizer.prototype.nextToken = function() {
         this.index_++;
         tokenChars.push(current);
       } else {
-        state = 0;
         return tokenChars.join('');
       }
     } else if (state == 5) {
@@ -117,7 +124,6 @@ gristVm.Tokenizer.prototype.nextToken = function() {
         state = 6;
         this.index_++;
       } else {
-        state = 0;
         return '/';  // Return the previous / as a symbol.
       }
     } else if (state == 6) {
@@ -127,7 +133,21 @@ gristVm.Tokenizer.prototype.nextToken = function() {
         this.index_++;  // Skip the whitespace.
         state = 0;
       }
+    } else if (state == 4) {
+      if (identifierRegExp.test(current)) {
+        this.index_++;
+        tokenChars.push(current);
+      } else {
+        return tokenChars.join('');
+      }
     }
   }
-  return tokenChars.join('');
+
+  if (current == '/') {
+    // We may have reached the end of the code in state 5, in which case we
+    // should return the / symbol.
+    return current;
+  } else {
+    return tokenChars.join('');
+  }
 };

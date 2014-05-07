@@ -69,9 +69,53 @@ limitations under the License.
         test.assertEqual('Should see hex string after comment', 'x6E',
                          tokenizer.nextToken());
 
-        // TODO: add more tests for / after symbol logic is added.
+        var tokenizer = new gristVm.Tokenizer('/ /');
+        test.assertEqual('Should get a / symbol', '/', tokenizer.nextToken());
+        test.assertEqual('Should be followed by another / symbol', '/',
+                         tokenizer.nextToken());
       });
 
+      suite.addTest('tokenizer reads identifiers', function(test) {
+        var tokenizer = new gristVm.Tokenizer('label Main');
+        test.assertEqual('First identifier should be label', 'label',
+                         tokenizer.nextToken());
+        test.assertEqual('Second identifier should be Main', 'Main',
+                         tokenizer.nextToken());
+
+        var tokenizer = new gristVm.Tokenizer('A-B*C');
+        test.assertEqual('First identifier should be A', 'A',
+                         tokenizer.nextToken());
+        test.assertEqual('Second identifier should be -', '-',
+                         tokenizer.nextToken());
+        test.assertEqual('Third identifier should be B', 'B',
+                         tokenizer.nextToken());
+        test.assertEqual('Fourth identifier should be *', '*',
+                         tokenizer.nextToken());
+        test.assertEqual('Fifth identifier should be C', 'C',
+                         tokenizer.nextToken());
+      });
+
+      suite.addTest('tokenizer reads symbols', function(test) {
+        var tokenizer = new gristVm.Tokenizer('!~@$%^&*()[]-_<>?/');
+        test.assertEqual('Symbol !', '!', tokenizer.nextToken());
+        test.assertEqual('Symbol ~', '~', tokenizer.nextToken());
+        test.assertEqual('Symbol @', '@', tokenizer.nextToken());
+        test.assertEqual('Symbol $', '$', tokenizer.nextToken());
+        test.assertEqual('Symbol %', '%', tokenizer.nextToken());
+        test.assertEqual('Symbol ^', '^', tokenizer.nextToken());
+        test.assertEqual('Symbol &', '&', tokenizer.nextToken());
+        test.assertEqual('Symbol *', '*', tokenizer.nextToken());
+        test.assertEqual('Symbol (', '(', tokenizer.nextToken());
+        test.assertEqual('Symbol )', ')', tokenizer.nextToken());
+        test.assertEqual('Symbol [', '[', tokenizer.nextToken());
+        test.assertEqual('Symbol ]', ']', tokenizer.nextToken());
+        test.assertEqual('Symbol -', '-', tokenizer.nextToken());
+        test.assertEqual('Symbol _', '_', tokenizer.nextToken());
+        test.assertEqual('Symbol <', '<', tokenizer.nextToken());
+        test.assertEqual('Symbol >', '>', tokenizer.nextToken());
+        test.assertEqual('Symbol ?', '?', tokenizer.nextToken());
+        test.assertEqual('Symbol /', '/', tokenizer.nextToken());
+      });
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
