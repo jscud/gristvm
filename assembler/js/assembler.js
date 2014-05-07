@@ -63,7 +63,7 @@ gristVm.Tokenizer.prototype.nextToken = function() {
   var tokenChars = [];
   var current;
   /* States: 0 - start
-   *         1 - integer start (can have a - for negatives)
+   *         1 - integer start (can have a - for a negative)
    *         2 - integer
    *         3 - hex string
    *         4 - identifier/command
@@ -74,8 +74,12 @@ gristVm.Tokenizer.prototype.nextToken = function() {
     if (state == 0) {
       if (/\s/.test(current)) {
         this.index_++;
-      } else if (current == 'i' || current == 'b') {
+      } else if (current == 'i') {
         state = 1;
+        tokenChars.push(current);
+        this.index_++;
+      } else if (current == 'b') {
+        state = 2;
         tokenChars.push(current);
         this.index_++;
       }

@@ -40,6 +40,16 @@ limitations under the License.
                          tokenizer.nextToken());
       });
 
+      suite.addTest('tokenizer reads byte', function(test) {
+        var tokenizer = new gristVm.Tokenizer('  b83');
+        test.assertEqual('Only token should be b83', 'b83',
+                         tokenizer.nextToken());
+
+        var tokenizer = new gristVm.Tokenizer('b-1');
+        test.assertEqual('Negative bytes should not be supported', 'b',
+                         tokenizer.nextToken());
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
