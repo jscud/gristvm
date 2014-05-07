@@ -67,6 +67,7 @@ gristVm.Tokenizer.prototype.nextToken = function() {
    *         2 - integer
    *         3 - hex string
    *         4 - identifier/command
+   *         5 - label
    */
   var state = 0;
   while (this.index_ < this.code_.length) {
@@ -82,10 +83,22 @@ gristVm.Tokenizer.prototype.nextToken = function() {
         state = 2;
         tokenChars.push(current);
         this.index_++;
+      } else if (current == 'x') {
+        state = 3;
+        tokenChars.push(current);
+        this.index_++;
       }
     } else if (state == 1 || state == 2) {
       if (/\d/.test(current) || (state == 1 && current == '-')) {
         state = 2;
+        this.index_++;
+        tokenChars.push(current);
+      } else {
+        state = 0;
+        return tokenChars.join('');
+      }
+    } else if (state == 3) {
+      if (/[\dA-Fa-f]/.test(current)) {
         this.index_++;
         tokenChars.push(current);
       } else {

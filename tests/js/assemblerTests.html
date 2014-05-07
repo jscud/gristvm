@@ -50,6 +50,16 @@ limitations under the License.
                          tokenizer.nextToken());
       });
 
+      suite.addTest('tokenizer reads hex string', function(test) {
+        var tokenizer = new gristVm.Tokenizer('x00Afed123');
+        test.assertEqual('Only token should be x00Afed123', 'x00Afed123',
+                         tokenizer.nextToken());
+
+        var tokenizer = new gristVm.Tokenizer('xadcdefgh');
+        test.assertEqual('Token should stop with non hex character', 'xadcdef',
+                         tokenizer.nextToken());
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
