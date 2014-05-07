@@ -67,7 +67,8 @@ gristVm.Tokenizer.prototype.nextToken = function() {
    *         2 - integer
    *         3 - hex string
    *         4 - identifier/command
-   *         5 - label
+   *         5 - possible start of comment
+   *         6 - comment
    */
   var state = 0;
   while (this.index_ < this.code_.length) {
@@ -87,6 +88,12 @@ gristVm.Tokenizer.prototype.nextToken = function() {
         state = 3;
         tokenChars.push(current);
         this.index_++;
+      } else if (current == '/') {
+        state = 5;
+        this.index_++;
+      } else if (current == '#') {
+        state = 6;
+        this.index_++;
       }
     } else if (state == 1 || state == 2) {
       if (/\d/.test(current) || (state == 1 && current == '-')) {
@@ -104,6 +111,21 @@ gristVm.Tokenizer.prototype.nextToken = function() {
       } else {
         state = 0;
         return tokenChars.join('');
+      }
+    } else if (state == 5) {
+      if (current == '/') {
+        state = 6;
+        this.index_++;
+      } else {
+        state = 0;
+        return '/';  // Return the previous / as a symbol.
+      }
+    } else if (state == 6) {
+      if (current != '\n' && current != '\r') {
+        this.index_++;
+      } else {
+        this.index_++;  // Skip the whitespace.
+        state = 0;
       }
     }
   }

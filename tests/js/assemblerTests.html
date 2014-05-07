@@ -60,6 +60,18 @@ limitations under the License.
                          tokenizer.nextToken());
       });
 
+      suite.addTest('tokenizer passes over comments', function(test) {
+        var tokenizer = new gristVm.Tokenizer('// Comment');
+        test.assertEqual('Only comment should give no tokens', '',
+                         tokenizer.nextToken());
+
+        var tokenizer = new gristVm.Tokenizer('# Comment\nx6E');
+        test.assertEqual('Should see hex string after comment', 'x6E',
+                         tokenizer.nextToken());
+
+        // TODO: add more tests for / after symbol logic is added.
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
