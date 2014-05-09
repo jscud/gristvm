@@ -42,12 +42,34 @@ gristVm.Assembler = function() {
  * then filled in during a second pass.
  */
 gristVm.Assembler.prototype.loadCode = function(codeString) {
-  // TODO
+  var tokenizer = new gristVm.Tokenizer(codeString);
+  var token = tokenizer.nextToken();
+  /* States: 0 - start
+   *         1 - defining a label
+   */
+  var state = 0;
+  while (token != '') {
+    if (state == 0) {
+      if (token == 'label') {
+        state = 1;
+      } else {
+        this.codeBytes = this.codeBytes.concat(
+            gristVm.Assembler.tokenToBytes_(token));
+      }
+    } else if (state == 1) {
+      this.labelLocations_[token] = this.codeBytes.length;
+      state = 0;
+    }
+    token = tokenizer.nextToken();
+  }
 };
 
 gristVm.Assembler.prototype.emitBytes = function() {
   // Return a copy so that the caller can't modify the bytes in the assembler.
   return this.codeBytes.slice(0);
+};
+
+gristVm.Assembler.tokenToBytes_ = function(token) {
 };
 
 /**
@@ -57,6 +79,60 @@ gristVm.Assembler.prototype.emitBytes = function() {
 gristVm.Tokenizer = function(codeString) {
   this.code_ = codeString;
   this.index_ = 0;
+};
+
+gristVm.Tokenizer.prototype.skipWhitespaceAndComments_ = function() {
+  var current;
+  /* States: 0 - start
+   *         1 - possible start of comment
+   *         2 - comment
+   */
+  var state = 0;
+  while (this.index_ < this.code_.length) {
+    current = this.code_.charAt(this.index_);
+    if (state == 0) {
+      if (/\s/.test(current)) {
+        this.index_++;
+      } else if (current == '#') {
+        state = 2;
+        this.index_++;
+      } else if (current == '/') {
+        state = 1;
+        this.index_++;
+      } else {
+        return;
+      }
+    } else if (state == 1) {
+      if (current == '/') {
+        state = 2;
+        this.index_++;
+      } else {
+        this.index_--;
+        return;
+      }
+    } else if (state == 2) {
+      this.index_++;
+      if (current == '\n' || current == '\r') {
+        return;
+      }
+    }
+  }
+};
+
+gristVm.Tokenizer.prototype.nextByte = function() {
+  this.skipWhitespaceAndComments_();
+  var current;
+  var tokenChars = [];
+  while (this.index_ < this.code_.length) {
+    current = this.code_.charAt(this.index_);
+    if (/\d/.test(current)) {
+      tokenChars.push(current);
+      this.index_++;
+    } else {
+      break;
+    }
+  }
+  return tokenChars.join('');
 };
 
 gristVm.Tokenizer.prototype.nextToken = function() {
@@ -77,16 +153,8 @@ gristVm.Tokenizer.prototype.nextToken = function() {
     if (state == 0) {
       if (/\s/.test(current)) {
         this.index_++;
-      } else if (current == 'i') {
+      } else if (current == '-') {
         state = 1;
-        tokenChars.push(current);
-        this.index_++;
-      } else if (current == 'b') {
-        state = 2;
-        tokenChars.push(current);
-        this.index_++;
-      } else if (current == 'x') {
-        state = 3;
         tokenChars.push(current);
         this.index_++;
       } else if (current == '/') {

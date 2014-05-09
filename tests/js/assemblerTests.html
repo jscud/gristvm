@@ -22,100 +22,32 @@ limitations under the License.
     <script>
       var suite = new jsTest.TestSuite();
 
-      suite.addTest('tokenizer reads integer', function(test) {
-        var tokenizer = new gristVm.Tokenizer('i3');
-        test.assertEqual('Only token should be i3', 'i3',
-                         tokenizer.nextToken());
-        test.assertEqual('Should be out of tokens', '', tokenizer.nextToken());
-
-        var tokenizer = new gristVm.Tokenizer('  \t\ni  i-234    ');
-        test.assertEqual('First token should be i', 'i', tokenizer.nextToken());
-        test.assertEqual('Second token should be i-234', 'i-234',
-                         tokenizer.nextToken());
-        test.assertEqual('Ignore trailing whitespace', '',
-                         tokenizer.nextToken());
-
-        var tokenizer = new gristVm.Tokenizer('i-2-34');
-        test.assertEqual('First token should stop at a non digit', 'i-2',
-                         tokenizer.nextToken());
-      });
-
       suite.addTest('tokenizer reads byte', function(test) {
-        var tokenizer = new gristVm.Tokenizer('  b83');
-        test.assertEqual('Only token should be b83', 'b83',
-                         tokenizer.nextToken());
+        var tokenizer = new gristVm.Tokenizer('3');
+        test.assertEqual('Only token should be 3', '3',
+                         tokenizer.nextByte());
+        test.assertEqual('Should be out of tokens', '', tokenizer.nextByte());
 
-        var tokenizer = new gristVm.Tokenizer('b-1');
-        test.assertEqual('Negative bytes should not be supported', 'b',
-                         tokenizer.nextToken());
+        var tokenizer = new gristVm.Tokenizer('  \t\n254  i-234    ');
+        test.assertEqual('First token should be 254', '254', tokenizer.nextByte());
+        test.assertEqual('Second token should not be reached', '',
+                         tokenizer.nextByte());
+
+        var tokenizer = new gristVm.Tokenizer('41-2-34');
+        test.assertEqual('First token should stop at a non digit', '41',
+                         tokenizer.nextByte());
       });
 
-      suite.addTest('tokenizer reads hex string', function(test) {
-        var tokenizer = new gristVm.Tokenizer('x00Afed123');
-        test.assertEqual('Only token should be x00Afed123', 'x00Afed123',
-                         tokenizer.nextToken());
-
-        var tokenizer = new gristVm.Tokenizer('xadcdefgh');
-        test.assertEqual('Token should stop with non hex character', 'xadcdef',
-                         tokenizer.nextToken());
-      });
-
-      suite.addTest('tokenizer passes over comments', function(test) {
+      suite.addTest('tokenizer nextByte passes over comments', function(test) {
         var tokenizer = new gristVm.Tokenizer('// Comment');
         test.assertEqual('Only comment should give no tokens', '',
-                         tokenizer.nextToken());
+                         tokenizer.nextByte());
 
-        var tokenizer = new gristVm.Tokenizer('# Comment\nx6E');
-        test.assertEqual('Should see hex string after comment', 'x6E',
-                         tokenizer.nextToken());
-
-        var tokenizer = new gristVm.Tokenizer('/ /');
-        test.assertEqual('Should get a / symbol', '/', tokenizer.nextToken());
-        test.assertEqual('Should be followed by another / symbol', '/',
-                         tokenizer.nextToken());
+        var tokenizer = new gristVm.Tokenizer('# Comment\n12');
+        test.assertEqual('Should see byte after comment', '12',
+                         tokenizer.nextByte());
       });
 
-      suite.addTest('tokenizer reads identifiers', function(test) {
-        var tokenizer = new gristVm.Tokenizer('label Main');
-        test.assertEqual('First identifier should be label', 'label',
-                         tokenizer.nextToken());
-        test.assertEqual('Second identifier should be Main', 'Main',
-                         tokenizer.nextToken());
-
-        var tokenizer = new gristVm.Tokenizer('A-B*C');
-        test.assertEqual('First identifier should be A', 'A',
-                         tokenizer.nextToken());
-        test.assertEqual('Second identifier should be -', '-',
-                         tokenizer.nextToken());
-        test.assertEqual('Third identifier should be B', 'B',
-                         tokenizer.nextToken());
-        test.assertEqual('Fourth identifier should be *', '*',
-                         tokenizer.nextToken());
-        test.assertEqual('Fifth identifier should be C', 'C',
-                         tokenizer.nextToken());
-      });
-
-      suite.addTest('tokenizer reads symbols', function(test) {
-        var tokenizer = new gristVm.Tokenizer('!~@$%^&*()[]-_<>?/');
-        test.assertEqual('Symbol !', '!', tokenizer.nextToken());
-        test.assertEqual('Symbol ~', '~', tokenizer.nextToken());
-        test.assertEqual('Symbol @', '@', tokenizer.nextToken());
-        test.assertEqual('Symbol $', '$', tokenizer.nextToken());
-        test.assertEqual('Symbol %', '%', tokenizer.nextToken());
-        test.assertEqual('Symbol ^', '^', tokenizer.nextToken());
-        test.assertEqual('Symbol &', '&', tokenizer.nextToken());
-        test.assertEqual('Symbol *', '*', tokenizer.nextToken());
-        test.assertEqual('Symbol (', '(', tokenizer.nextToken());
-        test.assertEqual('Symbol )', ')', tokenizer.nextToken());
-        test.assertEqual('Symbol [', '[', tokenizer.nextToken());
-        test.assertEqual('Symbol ]', ']', tokenizer.nextToken());
-        test.assertEqual('Symbol -', '-', tokenizer.nextToken());
-        test.assertEqual('Symbol _', '_', tokenizer.nextToken());
-        test.assertEqual('Symbol <', '<', tokenizer.nextToken());
-        test.assertEqual('Symbol >', '>', tokenizer.nextToken());
-        test.assertEqual('Symbol ?', '?', tokenizer.nextToken());
-        test.assertEqual('Symbol /', '/', tokenizer.nextToken());
-      });
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
