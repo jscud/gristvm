@@ -216,4 +216,21 @@ gristVm.Tokenizer.prototype.nextIdentifier = function() {
  * follow an identifier (int/hex for example).
  */
 gristVm.Tokenizer.prototype.nextToken = function() {
+  var token = this.nextByte();
+  if (token) {
+    return token;
+  }
+    
+  token = this.nextIdentifier();
+  if (token) {
+    return token;
+  }
+
+  // If neither a byte literal not identifier, return the current character.
+  if (this.index_ < this.code_.length) {
+    this.index_++;
+    return this.code_.charAt(this.index_ - 1);
+  }
+
+  return '';
 };

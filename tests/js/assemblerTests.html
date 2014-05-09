@@ -28,12 +28,12 @@ limitations under the License.
                          tokenizer.nextByte());
         test.assertEqual('Should be out of tokens', '', tokenizer.nextByte());
 
-        var tokenizer = new gristVm.Tokenizer('  \t\n254  i-234    ');
+        tokenizer = new gristVm.Tokenizer('  \t\n254  i-234    ');
         test.assertEqual('First token should be 254', '254', tokenizer.nextByte());
         test.assertEqual('Second token should not be reached', '',
                          tokenizer.nextByte());
 
-        var tokenizer = new gristVm.Tokenizer('41-2-34');
+        tokenizer = new gristVm.Tokenizer('41-2-34');
         test.assertEqual('First token should stop at a non digit', '41',
                          tokenizer.nextByte());
       });
@@ -43,7 +43,7 @@ limitations under the License.
         test.assertEqual('Only comment should give no tokens', '',
                          tokenizer.nextByte());
 
-        var tokenizer = new gristVm.Tokenizer('# Comment\n12');
+        tokenizer = new gristVm.Tokenizer('# Comment\n12');
         test.assertEqual('Should see byte after comment', '12',
                          tokenizer.nextByte());
       });
@@ -57,7 +57,7 @@ limitations under the License.
         test.assertEqual('Third int should be -1', '-1', tokenizer.nextInt());
         test.assertEqual('Fourth int should be 0', '0', tokenizer.nextInt());
 
-        var tokenizer = new gristVm.Tokenizer('- 3');
+        tokenizer = new gristVm.Tokenizer('- 3');
         test.assertEqual('Should not find an int', '', tokenizer.nextInt());
       });
 
@@ -84,12 +84,33 @@ limitations under the License.
         test.assertEqual('Fourth identifier should be _012', '_012',
                          tokenizer.nextIdentifier());
 
-        var tokenizer = new gristVm.Tokenizer('abc1 1abc');
+        tokenizer = new gristVm.Tokenizer('abc1 1abc');
         test.assertEqual('First identifier should be abc1', 'abc1',
                          tokenizer.nextIdentifier());
         test.assertEqual(
             'Next identifier should not be found since it starts with a digit',
             '', tokenizer.nextIdentifier());
+      });
+
+      suite.addTest('tokenizer nextToken reads identifiers and byte literals',
+                    function(test) {
+        var tokenizer = new gristVm.Tokenizer('label foo123 123bar/3');
+        test.assertEqual('First token should be label', 'label',
+                         tokenizer.nextToken());
+        test.assertEqual('Second token should be foo123', 'foo123',
+                         tokenizer.nextToken());
+        test.assertEqual('Third token should be 123', '123',
+                         tokenizer.nextToken());
+        test.assertEqual('Fourth token should be bar', 'bar',
+                         tokenizer.nextToken());
+        test.assertEqual('Fifth token should be /', '/',
+                         tokenizer.nextToken());
+        test.assertEqual('Sixth token should be 3', '3',
+                         tokenizer.nextToken());
+
+        tokenizer = new gristVm.Tokenizer('');
+        test.assertEqual('No tokens in empty program', '',
+                         tokenizer.nextIdentifier());
       });
 
       suite.runTests(document.getElementById('results'));
