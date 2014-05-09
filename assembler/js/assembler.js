@@ -209,3 +209,11 @@ gristVm.Tokenizer.prototype.nextIdentifier = function() {
   }
   return tokenChars.join('');
 };
+
+/**
+ * Retrieves the next token from the assembly source code. Top level tokens
+ * can be identifiers or bytes. Other tokens like ints and hex sequences must
+ * follow an identifier (int/hex for example).
+ */
+gristVm.Tokenizer.prototype.nextToken = function() {
+};
