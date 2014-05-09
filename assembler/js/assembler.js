@@ -113,7 +113,7 @@ gristVm.Tokenizer.prototype.skipWhitespaceAndComments_ = function() {
     } else if (state == 2) {
       this.index_++;
       if (current == '\n' || current == '\r') {
-        return;
+        state = 0;
       }
     }
   }
@@ -123,6 +123,37 @@ gristVm.Tokenizer.prototype.nextByte = function() {
   this.skipWhitespaceAndComments_();
   var current;
   var tokenChars = [];
+  while (this.index_ < this.code_.length) {
+    current = this.code_.charAt(this.index_);
+    if (/\d/.test(current)) {
+      tokenChars.push(current);
+      this.index_++;
+    } else {
+      break;
+    }
+  }
+  return tokenChars.join('');
+};
+
+gristVm.Tokenizer.prototype.nextInt = function() {
+  this.skipWhitespaceAndComments_();
+  if (this.index_ >= this.code_.length) {
+    return '';
+  }
+  var current = this.code_.charAt(this.index_);
+  var tokenChars = [];
+  var isNegative = current == '-';
+  if (isNegative) {
+    this.index_++;
+    if (this.index_ < this.code_.length) {
+      current = this.code_.charAt(this.index_);
+      if (/\d/.test(current)) {
+        tokenChars.push('-');
+        tokenChars.push(current);
+        this.index_++;
+      }
+    }
+  }
   while (this.index_ < this.code_.length) {
     current = this.code_.charAt(this.index_);
     if (/\d/.test(current)) {
