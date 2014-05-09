@@ -56,8 +56,22 @@ limitations under the License.
                          tokenizer.nextInt());
         test.assertEqual('Third int should be -1', '-1', tokenizer.nextInt());
         test.assertEqual('Fourth int should be 0', '0', tokenizer.nextInt());
+
+        var tokenizer = new gristVm.Tokenizer('- 3');
+        test.assertEqual('Should not find an int', '', tokenizer.nextInt());
       });
 
+      suite.addTest('tokenizer reads hex sequences', function(test) {
+        var tokenizer = new gristVm.Tokenizer('00AafF13 1EFD FFFF//comment\raa');
+        test.assertEqual('First hex sequence should be 00AafF13', '00AafF13',
+                         tokenizer.nextHexSequence());
+        test.assertEqual('Second hex sequence should be 1EFD', '1EFD',
+                         tokenizer.nextHexSequence());
+        test.assertEqual('Third hex sequence should be FFFF', 'FFFF',
+                         tokenizer.nextHexSequence());
+        test.assertEqual('Fourth hex sequence should be aa', 'aa',
+                         tokenizer.nextHexSequence());
+      });
 
       suite.runTests(document.getElementById('results'));
     </script>

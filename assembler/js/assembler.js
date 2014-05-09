@@ -166,6 +166,22 @@ gristVm.Tokenizer.prototype.nextInt = function() {
   return tokenChars.join('');
 };
 
+gristVm.Tokenizer.prototype.nextHexSequence = function() {
+  this.skipWhitespaceAndComments_();
+  var current;
+  var tokenChars = [];
+  while (this.index_ < this.code_.length) {
+    current = this.code_.charAt(this.index_);
+    if (/[0-9A-Fa-f]/.test(current)) {
+      tokenChars.push(current);
+      this.index_++;
+    } else {
+      break;
+    }
+  }
+  return tokenChars.join('');
+};
+
 gristVm.Tokenizer.prototype.nextToken = function() {
   var tokenChars = [];
   var current;
