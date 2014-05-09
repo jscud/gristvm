@@ -73,6 +73,25 @@ limitations under the License.
                          tokenizer.nextHexSequence());
       });
 
+      suite.addTest('tokenizer reads identifiers', function(test) {
+        var tokenizer = new gristVm.Tokenizer('label . int//comment\r_012');
+        test.assertEqual('First identifier should be label', 'label',
+                         tokenizer.nextIdentifier());
+        test.assertEqual('Second identifier should be .', '.',
+                         tokenizer.nextIdentifier());
+        test.assertEqual('Third identifier should be int', 'int',
+                         tokenizer.nextIdentifier());
+        test.assertEqual('Fourth identifier should be _012', '_012',
+                         tokenizer.nextIdentifier());
+
+        var tokenizer = new gristVm.Tokenizer('abc1 1abc');
+        test.assertEqual('First identifier should be abc1', 'abc1',
+                         tokenizer.nextIdentifier());
+        test.assertEqual(
+            'Next identifier should not be found since it starts with a digit',
+            '', tokenizer.nextIdentifier());
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>

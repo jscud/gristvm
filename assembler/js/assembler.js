@@ -182,6 +182,34 @@ gristVm.Tokenizer.prototype.nextHexSequence = function() {
   return tokenChars.join('');
 };
 
+gristVm.Tokenizer.prototype.nextIdentifier = function() {
+  this.skipWhitespaceAndComments_();
+  var current;
+  var tokenChars = [];
+  // Check first character which must not be a digit.
+  if (this.index_ < this.code_.length) {
+    current = this.code_.charAt(this.index_);
+    if (/[A-Za-z_\.]/.test(current)) {
+      tokenChars.push(current);
+      this.index_++;
+    } else {
+      return '';
+    }
+  }
+  // Check following characters which may be digits.
+  while (this.index_ < this.code_.length) {
+    current = this.code_.charAt(this.index_);
+    if (/[A-Za-z_\.0-9]/.test(current)) {
+      tokenChars.push(current);
+      this.index_++;
+    } else {
+      break;
+    }
+
+  }
+  return tokenChars.join('');
+};
+
 gristVm.Tokenizer.prototype.nextToken = function() {
   var tokenChars = [];
   var current;
