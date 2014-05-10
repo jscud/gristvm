@@ -33,7 +33,7 @@ gristVm.AssemblerError.prototype = new Error();
  */
 gristVm.Assembler = function() {
   this.labelLocations_ = {};
-  this.codeBytes = [];
+  this.codeBytes_ = [];
 };
 
 /**
@@ -52,24 +52,31 @@ gristVm.Assembler.prototype.loadCode = function(codeString) {
     if (state == 0) {
       if (token == 'label') {
         state = 1;
-      } else {
-        this.codeBytes = this.codeBytes.concat(
-            gristVm.Assembler.tokenToBytes_(token));
+      } else if (token == 'int') {
+      } else if (token == 'hex') {
+      } else if (/^\d+$/.test(token)) {
+        this.codeBytes_.push(gristVm.Assembler.bytesTokenToBytes(token));
       }
+      token = tokenizer.nextToken();
     } else if (state == 1) {
       this.labelLocations_[token] = this.codeBytes.length;
       state = 0;
     }
-    token = tokenizer.nextToken();
   }
 };
 
 gristVm.Assembler.prototype.emitBytes = function() {
-  // Return a copy so that the caller can't modify the bytes in the assembler.
-  return this.codeBytes.slice(0);
+  // TODO: Fill in the labels locations now that all code has been loaded.
+  return this.codeBytes_.slice(0);
 };
 
-gristVm.Assembler.tokenToBytes_ = function(token) {
+gristVm.Assembler.bytesTokenToBytes = function(token) {
+  var byteValue = parseInt(token, 10);
+  if (byteValue < 0 || byteValue > 255) {
+    throw new gristVm.AssemblerError(
+        'Byte must be between 0 and 255 but was ' + token);
+  }
+  return byteValue;
 };
 
 /**

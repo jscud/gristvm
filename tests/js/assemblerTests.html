@@ -113,6 +113,16 @@ limitations under the License.
                          tokenizer.nextIdentifier());
       });
 
+      suite.addTest('assembler converts bytes', function(test) {
+        var assembler = new gristVm.Assembler();
+        assembler.loadCode('0 1 # Comment\n 12 255');
+        test.assertArraysEqual('Assemble byte literals', [0, 1, 12, 255],
+                               assembler.emitBytes());
+
+        test.assertThrows('Value too large for byte should throw error',
+                          function() {assembler.loadCode('256')});
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
