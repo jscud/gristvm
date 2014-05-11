@@ -64,6 +64,11 @@ gristVm.Assembler.prototype.loadCode = function(codeString) {
       } else if (/^\d+$/.test(token)) {
         this.codeBytes_.push(gristVm.Assembler.bytesTokenToBytes(token));
         token = tokenizer.nextToken();
+      } else if (/^[A-Za-z_\.][A-Za-z_\.0-9]*$/.test(token)) {
+        this.codeBytes_.push(gristVm.Assembler.commandToBytes(token));
+        token = tokenizer.nextToken();
+      } else {
+        throw new gristVm.AssemblerError('Unexpected input: ' + token);
       }
     } else if (state == 1) {
       this.labelLocations_[token] = this.codeBytes.length;
@@ -132,6 +137,18 @@ gristVm.Assembler.hexTokenToBytes = function(token) {
     bytes.push(parseInt(charPair, 16));
   }
   return bytes;
+};
+
+gristVm.Assembler.commandToBytes = function(token) {
+  var command = token.toLowerCase();
+  switch (command) {
+    case 'noop':
+      return 0;
+    case 'setreg':
+      return 1;
+    default:
+      throw new gristVm.AssemblerError('Unrecognized command: ' + token);
+  }
 };
 
 /**

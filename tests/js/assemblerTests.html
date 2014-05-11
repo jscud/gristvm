@@ -161,6 +161,16 @@ limitations under the License.
                           function() {assembler.loadCode('hex BB220')});
       });
 
+      suite.addTest('assembler converts commands', function(test) {
+        var assembler = new gristVm.Assembler();
+        assembler.loadCode('noop SetReg NOOP setreg');
+        test.assertArraysEqual('Assemble commands', [0, 1, 0, 1],
+                               assembler.emitBytes());
+
+        test.assertThrows('Unknown command should throw error',
+                          function() {assembler.loadCode('commandDoesNotExist')});
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
