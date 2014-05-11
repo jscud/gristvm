@@ -123,6 +123,29 @@ limitations under the License.
                           function() {assembler.loadCode('256')});
       });
 
+      suite.addTest('assembler converts integers', function(test) {
+        var assembler = new gristVm.Assembler();
+        assembler.loadCode(
+            'int 0 int // Comment\r 1 int -1 int 256 int -2 ' +
+            'int -2147483648 int 2147483647');
+        test.assertArraysEqual(
+            'Assemble int literals',
+            [0,   0,   0,   0,    // int 0
+             1,   0,   0,   0,    // int 1
+             255, 255, 255, 255,  // int -1
+             0,   1,   0,   0,    // int 256
+             254, 255, 255, 255,  // int -2
+             0,   0,   0,   128,  // int -2147483648
+             255, 255, 255, 127], // int 2147483647
+            assembler.emitBytes());
+
+        test.assertThrows('Value too large for int should throw error',
+                          function() {assembler.loadCode('int 2147483648')});
+        test.assertThrows('Value too small for int should throw error',
+                          function() {assembler.loadCode('int -2147483649')});
+      });
+
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>

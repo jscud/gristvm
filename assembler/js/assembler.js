@@ -46,21 +46,31 @@ gristVm.Assembler.prototype.loadCode = function(codeString) {
   var token = tokenizer.nextToken();
   /* States: 0 - start
    *         1 - defining a label
+   *         2 - writing an integer literal
    */
   var state = 0;
   while (token != '') {
     if (state == 0) {
       if (token == 'label') {
         state = 1;
+        token = tokenizer.nextIdentifier();
       } else if (token == 'int') {
+        state = 2;
+        token = tokenizer.nextInt();
       } else if (token == 'hex') {
       } else if (/^\d+$/.test(token)) {
         this.codeBytes_.push(gristVm.Assembler.bytesTokenToBytes(token));
+        token = tokenizer.nextToken();
       }
-      token = tokenizer.nextToken();
     } else if (state == 1) {
       this.labelLocations_[token] = this.codeBytes.length;
       state = 0;
+      token = tokenizer.nextToken();
+    } else if (state == 2) {
+      this.codeBytes_ = this.codeBytes_.concat(
+          gristVm.Assembler.intTokenToBytes(token));
+      state = 0;
+      token = tokenizer.nextToken();
     }
   }
 };
@@ -77,6 +87,28 @@ gristVm.Assembler.bytesTokenToBytes = function(token) {
         'Byte must be between 0 and 255 but was ' + token);
   }
   return byteValue;
+};
+
+gristVm.Assembler.intTokenToBytes = function(token) {
+  var intValue = parseInt(token, 10);
+  if (intValue < -2147483648 || intValue > 2147483647) {
+    throw new gristVm.AssemblerError(
+        'Integer must be between -2147483648 and 2147483647 but was ' + token);
+  }
+  var bytes = [];
+  var isNegative = intValue < 0;
+  if (isNegative) {
+    intValue = (intValue * -1) - 1;
+  }
+  for (var i = 0; i < 4; i++) {
+    if (isNegative) {
+      bytes.push(255 - (intValue % 256));
+    } else {
+      bytes.push(intValue % 256);
+    }
+    intValue = intValue >> 8;
+  }
+  return bytes;
 };
 
 /**
