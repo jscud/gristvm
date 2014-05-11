@@ -47,6 +47,7 @@ gristVm.Assembler.prototype.loadCode = function(codeString) {
   /* States: 0 - start
    *         1 - defining a label
    *         2 - writing an integer literal
+   *         3 - writing a hexidemial sequence of bytes
    */
   var state = 0;
   while (token != '') {
@@ -58,6 +59,8 @@ gristVm.Assembler.prototype.loadCode = function(codeString) {
         state = 2;
         token = tokenizer.nextInt();
       } else if (token == 'hex') {
+        state = 3;
+        token = tokenizer.nextHexSequence();
       } else if (/^\d+$/.test(token)) {
         this.codeBytes_.push(gristVm.Assembler.bytesTokenToBytes(token));
         token = tokenizer.nextToken();
@@ -69,6 +72,11 @@ gristVm.Assembler.prototype.loadCode = function(codeString) {
     } else if (state == 2) {
       this.codeBytes_ = this.codeBytes_.concat(
           gristVm.Assembler.intTokenToBytes(token));
+      state = 0;
+      token = tokenizer.nextToken();
+    } else if (state == 3) {
+      this.codeBytes_ = this.codeBytes_.concat(
+          gristVm.Assembler.hexTokenToBytes(token));
       state = 0;
       token = tokenizer.nextToken();
     }
@@ -107,6 +115,21 @@ gristVm.Assembler.intTokenToBytes = function(token) {
       bytes.push(intValue % 256);
     }
     intValue = intValue >> 8;
+  }
+  return bytes;
+};
+
+gristVm.Assembler.hexTokenToBytes = function(token) {
+  if (token.length % 2 != 0) {
+    throw new gristVm.AssemblerError(
+        'Sequence of hexidecimal bytes must have an even number of ' +
+        'characters. Sequence length: ' + token.length);
+  }
+  var charPair;
+  var bytes = [];
+  for (var i = 0; i < token.length; i += 2) {
+    charPair = token.charAt(i) + token.charAt(i + 1);
+    bytes.push(parseInt(charPair, 16));
   }
   return bytes;
 };

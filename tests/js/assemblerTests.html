@@ -145,6 +145,21 @@ limitations under the License.
                           function() {assembler.loadCode('int -2147483649')});
       });
 
+      suite.addTest('assembler converts hex sequences', function(test) {
+        var assembler = new gristVm.Assembler();
+        assembler.loadCode('hex 00 hex fFEe hex // Comment\n DEADBEEF');
+        test.assertArraysEqual(
+            'Assemble hex literals',
+            [0,                    // hex 00
+             255, 238,             // hex FFEE
+             222, 173, 190, 239],  // hex DEADBEEF
+            assembler.emitBytes());
+
+        test.assertThrows('Single hex char should throw error',
+                          function() {assembler.loadCode('hex a')});
+        test.assertThrows('Uneven number of hex chars should throw error',
+                          function() {assembler.loadCode('hex BB220')});
+      });
 
       suite.runTests(document.getElementById('results'));
     </script>
