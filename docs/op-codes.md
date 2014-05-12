@@ -15,3 +15,11 @@ Sets a register to a literal value.
 1 followed by two parameters
 1. A byte numbering which register should be filled.
 2. Literal value to place in that register. This can be a number or character. For a value that doesn't take the full four bytes, all unused bytes in the register will be set to 0.
+
+### 2 - COPYREG
+
+Sets a register to the same value as another register.
+
+2 Followed by two parameters
+1. A byte numbering the register to receive the copied value.
+2. A byte for the register whose value should be copied.

@@ -110,6 +110,9 @@ gristVm.Interpreter.prototype.step = function() {
     case 1:
       this.setReg();
       break;
+    case 2:
+      this.copyReg();
+      break;
     default: // if null, we've run out of bytes and should not continue.
       return false;
   }
@@ -131,6 +134,23 @@ gristVm.Interpreter.prototype.setReg = function() {
   }
   this.registers_[regNumber] = value;
 };
+
+gristVm.Interpreter.prototype.copyReg = function() {
+  var destReg = this.consumeByte_();
+  var sourceReg = this.consumeByte_();
+  if (destReg == null || sourceReg == null) {
+    throw new gristVm.InterpreterError(
+        'Unexpected inputs when copying register. Tried to set register ' +
+        destReg + ' to match register ' + sourceReg + '.');
+  } else if (destReg > this.numRegisters_ || sourceReg > this.numRegisters_) {
+    throw new gristVm.InterpreterError(
+        'Tried to accessed register that does not exist. Requested registers ' +
+        destReg + ' and ' + sourceReg + ' but this VM only has ' +
+        this.numReggisters_ + ' registers.');
+  }
+  this.registers_[destReg] = this.registers_[sourceReg];
+};
+
 
 gristVm.Interpreter.prototype.run = function() {
 
