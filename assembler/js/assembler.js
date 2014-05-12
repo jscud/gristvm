@@ -146,6 +146,8 @@ gristVm.Assembler.commandToBytes = function(token) {
       return 0;
     case 'setreg':
       return 1;
+    case 'copyreg':
+      return 2;
     default:
       throw new gristVm.AssemblerError('Unrecognized command: ' + token);
   }

@@ -167,6 +167,15 @@ limitations under the License.
         test.assertArraysEqual('Assemble commands', [0, 1, 0, 1],
                                assembler.emitBytes());
 
+        assembler = new gristVm.Assembler();
+        assembler.loadCode('setReg copyReg noOp');
+        test.assertArraysEqual(
+            'Check commands',
+            [1,  // setReg
+             2,  // copyReg
+             0   // noOp
+            ], assembler.emitBytes());
+
         test.assertThrows('Unknown command should throw error',
                           function() {assembler.loadCode('commandDoesNotExist')});
       });
