@@ -23,3 +23,13 @@ Sets a register to the same value as another register.
 2 Followed by two parameters
 1. A byte numbering the register to receive the copied value.
 2. A byte for the register whose value should be copied.
+
+### 3 - XOR
+
+Performs xor on the destination register using the value in the source register.
+
+3 followed by two parameters
+1. A byte numbering the register to receive the xored value.
+2. A byte for the register whose value should be xored with the first register.
+
+

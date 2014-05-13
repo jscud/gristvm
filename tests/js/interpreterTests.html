@@ -100,6 +100,24 @@ limitations under the License.
               function() {interpreter.step()});
       });
 
+      suite.addTest('copy value to a register', function(test) {
+        var interpreter = new gristVm.Interpreter(
+            [1, 0, 3, 0, 0, 0, 1, 1, 5, 0, 0, 0, 3, 0, 1]);
+        interpreter.step();
+        test.assertEqual('Register 0 should now contain 3', 3,
+                         interpreter.dump().r0);
+        interpreter.step();
+        test.assertEqual('Register 0 should still contain 3', 3,
+                         interpreter.dump().r0);
+        test.assertEqual('Register 1 should now contain 5', 5,
+                         interpreter.dump().r1);
+        interpreter.step();
+        test.assertEqual('Register 0 should now contain 6', 6,
+                         interpreter.dump().r0);
+        test.assertEqual('Register 1 should still contain 5', 5,
+                         interpreter.dump().r1);
+      });
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
