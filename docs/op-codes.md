@@ -32,4 +32,25 @@ Performs xor on the destination register using the value in the source register.
 1. A byte numbering the register to receive the xored value.
 2. A byte for the register whose value should be xored with the first register.
 
+### 4 - ADD
 
+### 5 - SUB
+
+### 6 - MUL
+
+### 7 - DIV
+
+### 8 - PUSH
+
+8 followed by one parameter
+1. the register whose integer (4 byte) value should be written to the top of the stack. The top of the stack is automatically advanced.
+
+### 9 - PUSHB
+
+8 followed by one parameter
+1. the register from which the lowest order byte should be written to the top of the stack. The top of the stack is automatically advanced.
+
+### 10 - PUSHF
+
+8 followed by one parameter
+1. the register from which a double precision floating point (8 byte) value should be written to the top of the stack. The top of the stack is automatically advanced.
