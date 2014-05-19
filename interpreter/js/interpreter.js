@@ -32,13 +32,36 @@ gristVm.InterpreterError.prototype = new Error();
  * Interpreter for GristVM bytecode.
  * @constructor
  */
-gristVm.Interpreter = function(instructionBytes, opt_numRegisters) {
+gristVm.Interpreter = function(instructionBytes, opt_numRegisters, opt_stackSize) {
   this.instructions_ = instructionBytes;
   this.instructionIndex_ = 0;
-  this.stackBase_ = 0;
-  this.stackTop_ = 0;
-  this.stack = [];
-  this.heap = [];
+  /* The interpreter includes its own virtual memory simulation with the
+   * following layout.
+   * High addresses       ---------------------| 2147483647
+   *                      | stack start        |
+   *                      | more stack         |
+   *                      | ...                |
+   *                      |                    |
+   *                      | ...                |
+   *                      | more heap          |
+   *                      | start of heap      |
+   *                      |                    |
+   *                      | ...                |
+   *                      | later instructions |
+   *                      | instructions start |
+   * Low addresses        ---------------------- 0
+   */
+  this.virtualMemory_ = {};
+  this.instructionsStart_ = 1024;
+  this.heapStart_ = this.instructionsStart_ + instructionBytes.length + 100 +
+      Math.floor(Math.random() * 1000);
+  this.stackStart_ = 2147482623 - Math.floor(Math.random() * 1000);
+  this.stackSize_ = opt_stackSize || 1048576; // 1MB stack by default.
+  // TODO: Have the stack start at a random high address to discourage hard
+  // coded stack reference addresses.
+  // The stack starts at a high address so that it can grow downward.
+  this.stackBase_ = this.stackStart_;
+  this.stackTop_ = this.stackBase_;
 
   // Set up the registers.
   this.registers_ = [];
@@ -171,9 +194,6 @@ gristVm.Interpreter.prototype.xor = function() {
   this.registers_[destReg] ^= this.registers_[sourceReg]; 
 };
 
-
 gristVm.Interpreter.prototype.run = function() {
 
 };
-
-
