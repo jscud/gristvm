@@ -32,9 +32,8 @@ gristVm.InterpreterError.prototype = new Error();
  * Interpreter for GristVM bytecode.
  * @constructor
  */
-gristVm.Interpreter = function(instructionBytes, opt_numRegisters, opt_stackSize) {
-  this.instructions_ = instructionBytes;
-  this.instructionIndex_ = 0;
+gristVm.Interpreter = function(instructionBytes, opt_numRegisters,
+                               opt_stackSize, opt_instructionOffset) {
   /* The interpreter includes its own virtual memory simulation with the
    * following layout.
    * High addresses       ---------------------| 2147483647
@@ -52,8 +51,18 @@ gristVm.Interpreter = function(instructionBytes, opt_numRegisters, opt_stackSize
    * Low addresses        ---------------------- 0
    */
   this.virtualMemory_ = {};
-  this.instructionsStart_ = 1024;
-  this.heapStart_ = this.instructionsStart_ + instructionBytes.length + 100 +
+  var instructionOffset = opt_instructionOffset || 0;
+  if (instructionOffset < 0) {
+    instructionOffset = 0;
+  }
+  this.instructionsStart_ = 1024 + instructionOffset;
+  var instructions = instructionBytes || [];
+  for (var i = 0; i < instructions.length; i++) {
+    this.virtualMemory_[this.instructionsStart_ + i] = instructions[i];
+  }
+  this.instructionIndex_ = this.instructionsStart_;
+  this.instructionsLength_ = instructions.length;
+  this.heapStart_ = this.instructionsStart_ + this.instructionsLength_ + 100 +
       Math.floor(Math.random() * 1000);
   this.stackStart_ = 2147482623 - Math.floor(Math.random() * 1000);
   this.stackSize_ = opt_stackSize || 1048576; // 1MB stack by default.
@@ -96,8 +105,10 @@ gristVm.Interpreter.prototype.dump = function() {
 };
 
 gristVm.Interpreter.prototype.consumeByte_ = function() {
-  if (this.instructionIndex_ >= 0 && this.instructionIndex_ < this.instructions_.length) {
-    var byteVal = this.instructions_[this.instructionIndex_];
+  if (this.instructionIndex_ >= this.instructionsStart_ &&
+      this.instructionIndex_ <
+      this.instructionsLength_ + this.instructionsStart_) {
+    var byteVal = this.virtualMemory_[this.instructionIndex_];
     if (byteVal < 0 || byteVal > 255) {
       return null;
     }
