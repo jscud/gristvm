@@ -97,9 +97,17 @@ gristVm.Interpreter.prototype.dump = function() {
     instructionIndex: this.instructionIndex_,
     stackBase: this.stackBase_,
     stackTop: this.stackTop_,
+    stackSample: {}
   };
-  for (var i = 0; i < this.numRegisters_; i++) {
+  var i;
+  for (i = 0; i < this.numRegisters_; i++) {
     state['r' + i] = this.registers_[i];
+  }
+  for (i = 8; i > -12; i--) {
+    var address = this.stackTop_ + i;
+    if (address > this.stackStart_ - this.stackSize_ && address <= this.stackStart_ && this.virtualMemory_.hasOwnProperty(address)) {
+      state.stackSample['stack top + ' + i] = this.virtualMemory_[address];
+    } 
   }
   return state;
 };
@@ -150,6 +158,9 @@ gristVm.Interpreter.prototype.step = function() {
     case 3:
       this.xor();
       break;
+    case 8:
+      this.push();
+      break;
     default: // if null, we've run out of bytes and should not continue.
       return false;
   }
@@ -198,11 +209,61 @@ gristVm.Interpreter.prototype.xor = function() {
         sourceReg + '.');
   } else if (destReg > this.numRegisters_ || sourceReg > this.numRegisters_) {
     throw new gristVm.InterpreterError(
-        'Tried to accessed register that does not exist. Requested registers ' +
+        'Tried to access register that does not exist. Requested registers ' +
         destReg + ' and ' + sourceReg + ' but this VM only has ' +
         this.numReggisters_ + ' registers.');
   }
   this.registers_[destReg] ^= this.registers_[sourceReg]; 
+};
+
+gristVm.Interpreter.prototype.setStackByte_ = function(address, value) {
+  if (address > this.stackStart_ ||
+      address < this.stackStart_ - this.stackSize_) {
+    throw new gristVm.InterpreterError('Tried to store ' + value +
+        ' at an address that is not part of the stack. Tried to set ' +
+        address + ' but the stack is ' + this.stackStart_ + ' to ' +
+        (this.stackStart_ - this.stackSize_) + '.');
+  } else if (value < 0 || value > 255) {
+    throw new gristVm.InterpreterError(
+        'Invalid value for byte being written to the stack: ' + value +
+        ' must be between 0 and 255.');
+  }
+  this.virtualMemory_[address] = value;
+};
+
+gristVm.Interpreter.prototype.push = function() {
+  var sourceReg = this.consumeByte_();
+   if (sourceReg == null) {
+    throw new gristVm.InterpreterError(
+        'Unexpected input when pushing register. Tried to push register ' +
+        sourceReg + '.');
+  } else if (sourceReg > this.numRegisters_) {
+    throw new gristVm.InterpreterError(
+        'Tried to access register that does not exist. Requested registers ' +
+        sourceReg + ' but this VM only has ' + this.numReggisters_ +
+        ' registers.');
+  }
+  var intValue = this.registers_[sourceReg];
+  // TODO: the following code is very similar to the assembler's
+  // intTokenToBytes. Consider splitting out a shared library.
+  if (intValue < -2147483648 || intValue > 2147483647) {
+    throw new gristVm.InterpreterError(
+        'Register ' + sourceReg + '\'s value must be between -2147483648 ' +
+        'and 2147483647 but was ' + intValue);
+  }
+  var isNegative = intValue < 0;
+  if (isNegative) {
+    intValue = (intValue * -1) - 1;
+  }
+  for (var i = 0; i < 4; i++) {
+    if (isNegative) {
+      this.setStackByte_(this.stackTop_, 255 - (intValue % 256));
+    } else {
+      this.setStackByte_(this.stackTop_, intValue % 256);
+    }
+    this.stackTop_--;
+    intValue = intValue >> 8;
+  }
 };
 
 gristVm.Interpreter.prototype.run = function() {

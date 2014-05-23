@@ -118,6 +118,22 @@ limitations under the License.
                          interpreter.dump().r1);
       });
 
+      suite.addTest('push register to the stack', function(test) {
+        var interpreter = new gristVm.Interpreter(
+            [1, 0, 7, 0, 0, 0, 8, 0]);
+        interpreter.step();
+        interpreter.step();
+        test.assertEqual('Stack top +1 should be 0', 0,
+                         interpreter.dump().stackSample['stack top + 1']);
+        test.assertEqual('Stack top +2 should be 0', 0,
+                         interpreter.dump().stackSample['stack top + 2']);
+        test.assertEqual('Stack top +3 should be 0', 0,
+                         interpreter.dump().stackSample['stack top + 3']);
+        test.assertEqual('Stack top +4 should be 7', 7,
+                         interpreter.dump().stackSample['stack top + 4']);
+      });
+
+
       suite.runTests(document.getElementById('results'));
     </script>
   </body>
