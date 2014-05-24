@@ -168,11 +168,14 @@ limitations under the License.
                                assembler.emitBytes());
 
         assembler = new gristVm.Assembler();
-        assembler.loadCode('setReg copyReg noOp');
+        assembler.loadCode('setReg copyReg xor push pop noOp');
         test.assertArraysEqual(
             'Check commands',
             [1,  // setReg
              2,  // copyReg
+             3,  // xor
+             8,  // push
+             9,  // pop
              0   // noOp
             ], assembler.emitBytes());
 
