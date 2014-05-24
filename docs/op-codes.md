@@ -45,12 +45,7 @@ Performs xor on the destination register using the value in the source register.
 8 followed by one parameter
 1. the register whose integer (4 byte) value should be written to the top of the stack. The top of the stack is automatically advanced.
 
-### 9 - PUSHB
+### 9 - POP
 
-8 followed by one parameter
-1. the register from which the lowest order byte should be written to the top of the stack. The top of the stack is automatically advanced.
-
-### 10 - PUSHF
-
-8 followed by one parameter
-1. the register from which a double precision floating point (8 byte) value should be written to the top of the stack. The top of the stack is automatically advanced.
+9 followed by one parameter
+1. the register to which the top 4 bytes of the stack should be loaded into. The top 4 bytes on the stack are read in little endian order to produce a signed integer. The stack pointer is automatically decremented to release the top 4 bytes that were read.

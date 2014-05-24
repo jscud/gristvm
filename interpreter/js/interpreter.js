@@ -161,6 +161,9 @@ gristVm.Interpreter.prototype.step = function() {
     case 8:
       this.push();
       break;
+    case 9:
+      this.pop();
+      break;
     default: // if null, we've run out of bytes and should not continue.
       return false;
   }
@@ -233,7 +236,7 @@ gristVm.Interpreter.prototype.setStackByte_ = function(address, value) {
 
 gristVm.Interpreter.prototype.push = function() {
   var sourceReg = this.consumeByte_();
-   if (sourceReg == null) {
+  if (sourceReg == null) {
     throw new gristVm.InterpreterError(
         'Unexpected input when pushing register. Tried to push register ' +
         sourceReg + '.');
@@ -256,16 +259,42 @@ gristVm.Interpreter.prototype.push = function() {
     intValue = (intValue * -1) - 1;
   }
   for (var i = 0; i < 4; i++) {
+    this.stackTop_--;
     if (isNegative) {
       this.setStackByte_(this.stackTop_, 255 - (intValue % 256));
     } else {
       this.setStackByte_(this.stackTop_, intValue % 256);
     }
-    this.stackTop_--;
     intValue = intValue >> 8;
   }
 };
 
-gristVm.Interpreter.prototype.run = function() {
+gristVm.Interpreter.prototype.pop = function() {
+  var destReg = this.consumeByte_();
+  if (destReg == null) {
+    throw new gristVm.InterpreterError(
+        'Unexpected input when pushing register. Tried to pop from the top ' +
+        'of the stack to register ' + destReg + '.');
+  } else if (destReg > this.numRegisters_) {
+    throw new gristVm.InterpreterError(
+        'Tried to write to a register that does not exist. Requested ' +
+        'registers ' + destReg + ' but this VM only has ' +
+        this.numReggisters_ + ' registers.');
+  }
 
+  if (this.stackTop_ < this.stackStart_ - this.stackSize_) {
+    throw new gristVm.InterpreterError('Invalid address for top of stack: ' +
+        this.stackTop_);
+  }
+ 
+  var value = this.virtualMemory_[this.stackTop_] << 24;
+  value += this.virtualMemory_[this.stackTop_ + 1] << 16;
+  value += this.virtualMemory_[this.stackTop_ + 2] << 8;
+  value += this.virtualMemory_[this.stackTop_ + 3];
+  this.stackTop_ += 4;
+  this.registers_[destReg] = value;
+};
+
+gristVm.Interpreter.prototype.run = function() {
+  while(this.step());
 };
